@@ -1,0 +1,63 @@
+{
+  "name": "PopLine",
+  "scopeName": "source.popline",
+  "fileTypes": ["pln"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#pop-prefix" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#numbers" },
+    { "include": "#containers" },
+    { "include": "#key-value" },
+    { "include": "#keys" }
+  ],
+  "repository": {
+    "comments": {
+      "name": "comment.line.number-sign.popline",
+      "match": "#.*$"
+    },
+    "pop-prefix": {
+      "name": "keyword.operator.pop-prefix.popline",
+      "match": "^\\d+ "
+    },
+    "strings": {
+      "name": "string.quoted.double.popline",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        { "name": "constant.character.escape.popline", "match": "\"\"(?=\")" }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        { "match": "\\btrue\\b", "name": "constant.language.boolean.true.popline" },
+        { "match": "\\bfalse\\b", "name": "constant.language.boolean.false.popline" },
+        { "match": "\\bnull\\b", "name": "constant.language.null.popline" }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.popline",
+      "match": "\\b-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
+    },
+    "containers": {
+      "patterns": [
+        { "match": "\\{", "name": "punctuation.definition.object.begin.popline" },
+        { "match": "\\}", "name": "punctuation.definition.object.end.popline" },
+        { "match": "\\[", "name": "punctuation.definition.array.begin.popline" },
+        { "match": "\\]", "name": "punctuation.definition.array.end.popline" }
+      ]
+    },
+    "key-value": {
+      "match": "(?<=^|\\d )(\\S[^:]*)(: )",
+      "captures": {
+        "1": { "name": "entity.other.attribute-name.popline" },
+        "2": { "name": "punctuation.separator.key-value.popline" }
+      }
+    },
+    "keys": {
+      "match": "\\S[^:{} \\t\\n]+(?=: )",
+      "name": "entity.other.attribute-name.popline"
+    }
+  }
+}
