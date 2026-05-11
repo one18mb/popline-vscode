@@ -9,8 +9,7 @@
     { "include": "#keywords" },
     { "include": "#numbers" },
     { "include": "#containers" },
-    { "include": "#key-value" },
-    { "include": "#keys" }
+    { "include": "#key-value" }
   ],
   "repository": {
     "comments": {
@@ -31,9 +30,9 @@
     },
     "keywords": {
       "patterns": [
-        { "match": "\\btrue\\b", "name": "constant.language.boolean.true.popline" },
-        { "match": "\\bfalse\\b", "name": "constant.language.boolean.false.popline" },
-        { "match": "\\bnull\\b", "name": "constant.language.null.popline" }
+        { "match": "\\btrue\\b",  "name": "constant.language.boolean.popline" },
+        { "match": "\\bfalse\\b", "name": "constant.language.boolean.popline" },
+        { "match": "\\bnull\\b",  "name": "constant.language.null.popline" }
       ]
     },
     "numbers": {
@@ -42,10 +41,8 @@
     },
     "containers": {
       "patterns": [
-        { "match": "\\{", "name": "punctuation.definition.object.begin.popline" },
-        { "match": "\\}", "name": "punctuation.definition.object.end.popline" },
-        { "match": "\\[", "name": "punctuation.definition.array.begin.popline" },
-        { "match": "\\]", "name": "punctuation.definition.array.end.popline" }
+        { "match": "\\{", "name": "punctuation.definition.object.popline" },
+        { "match": "\\[", "name": "punctuation.definition.array.popline" }
       ]
     },
     "key-value": {
@@ -54,10 +51,6 @@
         "1": { "name": "entity.other.attribute-name.popline" },
         "2": { "name": "punctuation.separator.key-value.popline" }
       }
-    },
-    "keys": {
-      "match": "\\S[^:{} \\t\\n]+(?=: )",
-      "name": "entity.other.attribute-name.popline"
     }
   }
 }

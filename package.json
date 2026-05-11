@@ -4,7 +4,7 @@
   "description": "PopLine language support for VS Code",
   "version": "0.1.0",
   "publisher": "one18mb",
-  "engines": { "vscode": "^1.82.0" },
+  "engines": { "vscode": "^1.70.0" },
   "categories": ["Programming Languages", "Formatters"],
   "contributes": {
     "languages": [{
@@ -17,8 +17,39 @@
       "language": "popline",
       "scopeName": "source.popline",
       "path": "./syntaxes/pln.tmLanguage.json"
+    }],
+    "semanticTokenColorCustomizations": {
+      "enabled": true,
+      "rules": {
+        "comment.popline": { "foreground": "#6A9955", "fontStyle": "italic" },
+        "keyword.popline": { "foreground": "#569CD6" },
+        "string.popline": { "foreground": "#CE9178" },
+        "number.popline": { "foreground": "#B5CEA8" },
+        "property.popline": { "foreground": "#9CDCFE" },
+        "punctuation.popline": { "foreground": "#D4D4D4" }
+      }
+    },
+    "editor.tokenColorCustomizations": [{
+      "name": "PopLine (Dark)",
+      "scope": "source.popline",
+      "settings": {
+        "foreground": "#D4D4D4",
+        "background": "#1E1E1E"
+      }
+    }, {
+      "name": "PopLine (Light)",
+      "scope": "source.popline",
+      "settings": {
+        "foreground": "#333333",
+        "background": "#FFFFFF"
+      }
     }]
   },
+  "icon": "icon.png",
   "activationEvents": [],
-  "main": "./extension.js"
+  "main": "./extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": true },
+    "virtualWorkspaces": true
+  }
 }
