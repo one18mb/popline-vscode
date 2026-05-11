@@ -1,0 +1,24 @@
+{
+  "name": "popline-vscode",
+  "displayName": "PopLine",
+  "description": "PopLine language support for VS Code",
+  "version": "0.1.0",
+  "publisher": "one18mb",
+  "engines": { "vscode": "^1.82.0" },
+  "categories": ["Programming Languages", "Formatters"],
+  "contributes": {
+    "languages": [{
+      "id": "popline",
+      "aliases": ["PopLine", "popline"],
+      "extensions": [".pln"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "popline",
+      "scopeName": "source.popline",
+      "path": "./syntaxes/pln.tmLanguage.json"
+    }]
+  },
+  "activationEvents": [],
+  "main": "./extension.js"
+}
