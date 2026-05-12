@@ -5,7 +5,7 @@ PopLine language support for `.pln` files.
 ## Features
 
 - Syntax highlighting (objects, arrays, keys, strings, numbers, keywords, comments)
-- Pop prefix `N ` highlighting
+- Pop suffix ` N` highlighting
 - Light & dark theme support
 - Basic file validation
 
@@ -22,7 +22,7 @@ PopLine language support for `.pln` files.
 ```bash
 git clone https://github.com/one18mb/popline-vscode.git
 cd popline-vscode
-code --install-extension popline-vscode-0.1.0.vsix
+code --install-extension popline-vscode-0.2.0.vsix
 ```
 
 ## Compatibility

@@ -2,7 +2,7 @@
   "name": "popline-vscode",
   "displayName": "PopLine",
   "description": "PopLine language support for VS Code",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "publisher": "one18mb",
   "repository": { "type": "git", "url": "https://github.com/one18mb/popline-vscode.git" },
   "engines": { "vscode": "^1.70.0" },
