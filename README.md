@@ -5,7 +5,7 @@ PopLine 语言支持（`.pln` 文件）。
 ## 功能
 
 - 语法高亮（对象、数组、键名、字符串、数字、关键字、注释）
-- 弹出行前缀 `N ` 高亮
+- 行末弹出后缀 ` N` 高亮
 - 深浅双色支持（适配 VS Code 深色/浅色主题）
 - 基础文件校验
 
@@ -22,7 +22,7 @@ PopLine 语言支持（`.pln` 文件）。
 ```bash
 git clone https://github.com/one18mb/popline-vscode.git
 cd popline-vscode
-code --install-extension popline-vscode-0.1.0.vsix
+code --install-extension popline-vscode-0.2.0.vsix
 ```
 
 ## 兼容性
@@ -39,7 +39,7 @@ code --install-extension popline-vscode-0.1.0.vsix
 ```bash
 npm install -g @vscode/vsce
 vsce package
-# 生成 popline-vscode-0.1.0.vsix
+# 生成 popline-vscode-0.2.0.vsix
 ```
 
 ## 配色

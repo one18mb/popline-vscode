@@ -24,57 +24,45 @@ function activate(context) {
                 const text = document.getText();
                 const lines = text.split('\n');
                 const ranges = [];
-                const stack = []; // { startLine, type }
+                const stack = [];
+                let inString = false;
 
                 for (let i = 0; i < lines.length; i++) {
                     let line = lines[i];
                     if (line.endsWith('\r')) line = line.slice(0, -1);
 
-                    // Skip empty lines and comments
                     const trimmed = line.trim();
                     if (trimmed === '' || trimmed.startsWith('#')) continue;
 
-                    // Parse pop prefix
-                    let nPop = 0, valStart = 0, j = 0;
-                    while (j < line.length && line[j] >= '0' && line[j] <= '9') j++;
-                    if (j > 0 && j < line.length && line[j] === ' ') {
-                        nPop = parseInt(line.slice(0, j), 10);
-                        valStart = j + 1;
+                    // Detect line-end pop suffix " N" (but not ": N")
+                    let nPop = 0;
+                    const suffixMatch = line.match(/ (\d+)$/);
+                    if (suffixMatch) {
+                        const charBeforeSpace = line[suffixMatch.index - 1];
+                        if (charBeforeSpace !== ':') {
+                            nPop = parseInt(suffixMatch[1], 10);
+                        }
                     }
 
-                    // Close folded containers
+                    // Close containers (pop happens after this line's value)
                     for (let p = 0; p < nPop; p++) {
                         if (stack.length > 0) {
                             const opened = stack.pop();
-                            // Only emit fold ranges of 2+ lines
                             if (i - opened.startLine >= 1) {
                                 ranges.push(new vscode.FoldingRange(
-                                    opened.startLine, i - 1,
-                                    opened.type === 'o'
-                                        ? vscode.FoldingRangeKind.Region
-                                        : vscode.FoldingRangeKind.Region
+                                    opened.startLine, i,
+                                    vscode.FoldingRangeKind.Region
                                 ));
                             }
                         }
                     }
 
-                    const rest = line.slice(valStart);
-
-                    // Root level containers
-                    if (rest === '{') {
-                        stack.push({ startLine: i, type: 'o' });
-                    } else if (rest === '[') {
-                        stack.push({ startLine: i, type: 'a' });
-                    } else {
-                        // Value-level containers: key: { or key: [
-                        const sep = rest.indexOf(': ');
-                        if (sep >= 0) {
-                            const valPart = rest.slice(sep + 2);
-                            if (valPart === '{') {
-                                stack.push({ startLine: i, type: 'o' });
-                            } else if (valPart === '[') {
-                                stack.push({ startLine: i, type: 'a' });
-                            }
+                    // Detect container openers: count { and [ (skip inside strings)
+                    for (let pos = 0; pos < line.length; pos++) {
+                        const ch = line[pos];
+                        if (ch === '"') inString = !inString;
+                        if (!inString && (ch === '{' || ch === '[')) {
+                            stack.push({ startLine: i });
                         }
                     }
                 }
@@ -99,6 +87,13 @@ function activate(context) {
     context.subscriptions.push(validateCmd, foldingProvider);
 }
 
+function popSuffix(line) {
+    const m = line.match(/ (\d+)$/);
+    if (!m) return 0;
+    const charBefore = line[m.index - 1];
+    return charBefore === ':' ? 0 : parseInt(m[1], 10);
+}
+
 function validate(text) {
     const frames = [];
     const lines = text.split('\n');
@@ -106,29 +101,68 @@ function validate(text) {
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
         if (line.endsWith('\r')) line = line.slice(0, -1);
-        if (line.trim() === '') continue;
+        const trimmed = line.trim();
+        if (trimmed === '' || trimmed.startsWith('#')) continue;
 
-        let nPop = 0, valStart = 0, j = 0;
-        while (j < line.length && line[j] >= '0' && line[j] <= '9') j++;
-        if (j > 0 && j < line.length && line[j] === ' ') {
-            nPop = parseInt(line.slice(0, j), 10);
-            valStart = j + 1;
+        // --- Extract pop suffix ---
+        let contentLine = line;
+        let nPop = popSuffix(line);
+        if (nPop > 0) {
+            contentLine = line.slice(0, line.lastIndexOf(' '));
         }
 
-        for (let p = 0; p < nPop; p++) frames.pop();
+        // --- Apply pop ---
+        for (let p = 0; p < nPop; p++) {
+            if (frames.length === 0) {
+                throw new Error(`line ${i + 1}: pop exceeds depth`);
+            }
+            frames.pop();
+        }
 
-        const rest = line.slice(valStart);
-        if (rest.length === 0) throw new Error(`line ${i + 1}: bare pop line`);
+        const rest = contentLine.trim();
 
+        // --- Line content validation ---
+        // Top level: must be { or [
         if (frames.length === 0) {
-            if (rest !== '{' && rest !== '[') throw new Error(`line ${i + 1}: top level must be { or [`);
-            frames.push(rest === '{' ? 'o' : 'a');
-            continue;
+            if (rest === '{') { frames.push('o'); continue; }
+            if (rest === '[') { frames.push('a'); continue; }
+            throw new Error(`line ${i + 1}: top level must be { or [`);
         }
 
         const top = frames[frames.length - 1];
         if (top === 'o') {
-            if (!rest.includes(': ')) throw new Error(`line ${i + 1}: object must have 'key: value'`);
+            // Object: must be "key: value"
+            const sep = rest.indexOf(': ');
+            if (sep < 0) throw new Error(`line ${i + 1}: object must have 'key: value'`);
+            const key = rest.slice(0, sep);
+            if (key.length === 0) throw new Error(`line ${i + 1}: empty key`);
+            // Check for forbidden key chars
+            if (/[:"{}[# \t]/.test(key)) throw new Error(`line ${i + 1}: invalid key: '${key}'`);
+
+            const valPart = rest.slice(sep + 2);
+            if (valPart === '{') frames.push('o');
+            else if (valPart === '[') frames.push('a');
+            else if (valPart.startsWith('"')) {
+                if (!valPart.endsWith('"') && !valPart.endsWith('" ')) {
+                    // multi-line string starts — skip close check this line
+                }
+            } else if (['true', 'false', 'null'].includes(valPart)) {
+                // keyword, ok
+            } else if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(valPart)) {
+                // number, ok
+            } else if (valPart.length === 0) {
+                throw new Error(`line ${i + 1}: missing value`);
+            } else {
+                throw new Error(`line ${i + 1}: invalid value: '${valPart}'`);
+            }
+        } else {
+            // Array: line is a value
+            if (rest === '{') frames.push('o');
+            else if (rest === '[') frames.push('a');
+            else if (rest.startsWith('"')) { /* string */ }
+            else if (['true', 'false', 'null'].includes(rest)) { /* keyword */ }
+            else if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(rest)) { /* number */ }
+            else throw new Error(`line ${i + 1}: invalid array value: '${rest}'`);
         }
     }
 }

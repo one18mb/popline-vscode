@@ -4,21 +4,21 @@
   "fileTypes": ["pln"],
   "patterns": [
     { "include": "#comments" },
-    { "include": "#pop-prefix" },
+    { "include": "#key-value" },
     { "include": "#strings" },
     { "include": "#keywords" },
     { "include": "#numbers" },
     { "include": "#containers" },
-    { "include": "#key-value" }
+    { "include": "#pop-suffix" }
   ],
   "repository": {
     "comments": {
       "name": "comment.line.number-sign.popline",
       "match": "#.*$"
     },
-    "pop-prefix": {
-      "name": "keyword.operator.pop-prefix.popline",
-      "match": "^\\d+ "
+    "pop-suffix": {
+      "name": "keyword.operator.pop-suffix.popline",
+      "match": " \\d+$"
     },
     "strings": {
       "name": "string.quoted.double.popline",
@@ -46,7 +46,7 @@
       ]
     },
     "key-value": {
-      "match": "(?<=^|\\d )(\\S[^:]*)(: )",
+      "match": "^(\\S[^:]*)(: )",
       "captures": {
         "1": { "name": "entity.other.attribute-name.popline" },
         "2": { "name": "punctuation.separator.key-value.popline" }
