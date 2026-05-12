@@ -34,7 +34,15 @@ function activate(context) {
                     const trimmed = line.trim();
                     if (trimmed === '' || trimmed.startsWith('#')) continue;
 
-                    // Detect line-end pop suffix " N" (but not ": N")
+                    // Count container openers outside strings
+                    let openers = 0;
+                    for (let pos = 0; pos < line.length; pos++) {
+                        const ch = line[pos];
+                        if (ch === '"') inString = !inString;
+                        if (!inString && (ch === '{' || ch === '[')) openers++;
+                    }
+
+                    // Detect line-end pop suffix
                     let nPop = 0;
                     const suffixMatch = line.match(/ (\d+)$/);
                     if (suffixMatch) {
@@ -44,38 +52,57 @@ function activate(context) {
                         }
                     }
 
-                    // Close containers (pop happens after this line's value)
+                    // Net depth change for this line
+                    const netChange = openers - nPop;
+
+                    // Stack: track depth per startLine
+                    // When depth increases, push new fold starts
+                    for (let p = 0; p < openers; p++) {
+                        stack.push({ startLine: i });
+                    }
+
+                    // When depth decreases, pop and emit folds
+                    // For lines with same startLine, only keep the longer (outer) range
                     for (let p = 0; p < nPop; p++) {
                         if (stack.length > 0) {
                             const opened = stack.pop();
                             if (i - opened.startLine >= 1) {
-                                ranges.push(new vscode.FoldingRange(
-                                    opened.startLine, i,
-                                    vscode.FoldingRangeKind.Region
-                                ));
+                                // Check if we already have a fold from this startLine
+                                const existing = ranges.findIndex(r => r.startLine === opened.startLine);
+                                if (existing >= 0) {
+                                    // Replace with longer range (later end)
+                                    ranges[existing] = new vscode.FoldingRange(
+                                        opened.startLine, i,
+                                        vscode.FoldingRangeKind.Region
+                                    );
+                                } else {
+                                    ranges.push(new vscode.FoldingRange(
+                                        opened.startLine, i,
+                                        vscode.FoldingRangeKind.Region
+                                    ));
+                                }
                             }
-                        }
-                    }
-
-                    // Detect container openers: count { and [ (skip inside strings)
-                    for (let pos = 0; pos < line.length; pos++) {
-                        const ch = line[pos];
-                        if (ch === '"') inString = !inString;
-                        if (!inString && (ch === '{' || ch === '[')) {
-                            stack.push({ startLine: i });
                         }
                     }
                 }
 
-                // EOF auto-close remaining containers
+                // EOF auto-close: extend remaining ranges to last line
                 const lastLine = Math.max(0, lines.length - 1);
                 while (stack.length > 0) {
                     const opened = stack.pop();
                     if (lastLine - opened.startLine >= 1) {
-                        ranges.push(new vscode.FoldingRange(
-                            opened.startLine, lastLine,
-                            vscode.FoldingRangeKind.Region
-                        ));
+                        const existing = ranges.findIndex(r => r.startLine === opened.startLine);
+                        if (existing >= 0) {
+                            ranges[existing] = new vscode.FoldingRange(
+                                opened.startLine, lastLine,
+                                vscode.FoldingRangeKind.Region
+                            );
+                        } else {
+                            ranges.push(new vscode.FoldingRange(
+                                opened.startLine, lastLine,
+                                vscode.FoldingRangeKind.Region
+                            ));
+                        }
                     }
                 }
 
