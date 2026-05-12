@@ -50,3 +50,8 @@ vsce package
 | Numbers | `#B5CEA8` | `#098658` |
 | Keywords | `#569CD6` | `#0000FF` |
 | Comments | `#6A9955` | `#008000` |
+
+## Acknowledgments
+This project was developed with the assistance of:
+- [Claude Code](https://claude.ai) (Anthropic)
+- [DeepSeek](https://deepseek.com) (DeepSeek)

@@ -55,3 +55,8 @@ vsce package
 | 数字 | 浅绿 `#B5CEA8` | 深绿 `#098658` |
 | 关键字 | 蓝色 `#569CD6` | 紫色 `#0000FF` |
 | 注释 | 绿色 `#6A9955` | 绿色 `#008000` |
+
+## 致谢
+本项目的开发得到了以下 AI 工具的大力协助：
+- [Claude Code](https://claude.ai)（Anthropic）
+- [DeepSeek](https://deepseek.com)（深度求索）
