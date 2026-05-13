@@ -1,11 +1,6 @@
 {
   "comments": { "lineComment": "#" },
-  "folding": "indentation",
   "autoClosingPairs": [
     { "open": "\"", "close": "\"", "notIn": ["string"] }
-  ],
-  "indentationRules": {
-    "increaseIndentPattern": "^\\s*[{\\[]\\s*$|\\S+:\\s*[{\\[]\\s*$",
-    "decreaseIndentPattern": "(?:^|[^:\\s])\\s+\\d+\\s*$"
-  }
+  ]
 }

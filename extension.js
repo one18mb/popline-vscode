@@ -129,7 +129,11 @@ function validate(text) {
         let line = lines[i];
         if (line.endsWith('\r')) line = line.slice(0, -1);
         const trimmed = line.trim();
-        if (trimmed === '' || trimmed.startsWith('#')) continue;
+        if (trimmed === '') {
+            if (frames.length > 0) throw new Error(`line ${i + 1}: empty line not allowed in message body`);
+            continue;
+        }
+        if (trimmed.startsWith('#')) continue;
 
         // --- Extract pop suffix ---
         let contentLine = line;
@@ -149,11 +153,21 @@ function validate(text) {
         const rest = contentLine.trim();
 
         // --- Line content validation ---
-        // Top level: must be { or [
+        // Top level: support all types, scalars consume no frames
         if (frames.length === 0) {
             if (rest === '{') { frames.push('o'); continue; }
             if (rest === '[') { frames.push('a'); continue; }
-            throw new Error(`line ${i + 1}: top level must be { or [`);
+            // Scalar root — validate value type
+            if (rest.startsWith('"')) {
+                if (!rest.endsWith('"') && !rest.match(/" \d+$/)) continue; // multi-line
+            } else if (['true', 'false', 'null'].includes(rest)) {
+                // ok
+            } else if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(rest)) {
+                // ok
+            } else {
+                throw new Error(`line ${i + 1}: invalid scalar value: '${rest}'`);
+            }
+            continue;
         }
 
         const top = frames[frames.length - 1];
